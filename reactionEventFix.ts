@@ -1,8 +1,7 @@
 import { IModule } from "@sb-types/ModuleLoader/Interfaces.new";
-import { ErrorMessages } from "@sb-types/Consts";
 import * as djs from "discord.js";
 import * as getLogger from "loggy";
-import { ModulePrivateInterface } from "@sb-types/ModuleLoader/PrivateInterface";
+import { unloadMethod, initializationMethod } from "@sb-types/ModuleLoader/Decorators";
 
 const EVENTS = {
 	MESSAGE_REACTION_ADD: "messageReactionAdd",
@@ -24,13 +23,8 @@ export class ReactionEventFix implements IModule<ReactionEventFix> {
 
 	private _rawListener: (event: any) => Promise<void>;
 
-	public async init(i: ModulePrivateInterface<ReactionEventFix>) {
-		if (i.baseCheck(this) && !i.isPendingInitialization()) {
-			throw new Error(
-				ErrorMessages.NOT_PENDING_INITIALIZATION
-			);
-		}
-
+	@initializationMethod
+	public async init() {
 		$discordBot.on(
 			"raw",
 			this._rawListener = (event) => this._onRawReaction(event)
@@ -69,13 +63,8 @@ export class ReactionEventFix implements IModule<ReactionEventFix> {
 		}
 	}
 
-	public async unload(i: ModulePrivateInterface<ReactionEventFix>) {
-		if (i.baseCheck(this) && !i.isPendingUnload()) {
-			throw new Error(
-				ErrorMessages.NOT_PENDING_UNLOAD
-			);
-		}
-
+	@unloadMethod
+	public async unload() {
 		if (this._rawListener) {
 			$discordBot.removeListener(
 				"raw",
